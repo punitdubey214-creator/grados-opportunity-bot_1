@@ -66,7 +66,7 @@ domain:
 "Physics",
 
 source:
-"AAS",
+"Physics World",
 
 url:
 item.link || "",
