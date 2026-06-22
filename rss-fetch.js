@@ -16,7 +16,7 @@ const db = admin.firestore();
 const parser = new Parser();
 
 const RSS_URL =
-"https://aas.org/jobregister";
+"https://physicsworld.com/feed/";
 
 async function run(){
 
