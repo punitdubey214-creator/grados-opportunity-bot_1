@@ -16,7 +16,7 @@ const db = admin.firestore();
 const parser = new Parser();
 
 const RSS_URL =
-"https://aas.org/posts/news/feed";
+"https://aas.org/";
 
 async function run(){
 
