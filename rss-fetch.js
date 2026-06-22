@@ -34,7 +34,10 @@ Buffer.from(
 (item.title || "") +
 (item.link || "")
 )
-.toString("base64");
+.toString("base64")
+.replace(/\//g, "_")
+.replace(/\+/g, "-")
+.replace(/=/g, "");
 
 const docRef =
 db.collection(
