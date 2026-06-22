@@ -1,4 +1,8 @@
 {
-  "name": "grados-opportunity-bot",
-  "type": "module"
+"name": "grados-opportunity-bot",
+"type": "module",
+"dependencies": {
+"firebase-admin": "^13.0.0",
+"rss-parser": "^3.13.0"
+}
 }
