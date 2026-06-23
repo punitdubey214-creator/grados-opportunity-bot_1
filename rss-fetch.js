@@ -31,29 +31,86 @@ source: "Physics Jobs Feed"
 
 const INCLUDE_KEYWORDS = [
 
-"phd",
-"doctoral",
-"phd position",
-"doctoral position",
-"phd candidate",
+  // PhD
+  "phd",
+  "ph.d",
+  "doctoral",
+  "doctorate",
+  "doctoral position",
+  "phd position",
+  "phd candidate",
+  "doctoral candidate",
+  "phd admission",
+  "phd program",
+  "graduate student",
 
-"postdoc",
-"postdoctoral",
+  // Postdoc
+  "postdoc",
+  "post-doc",
+  "postdoctoral",
+  "post doctoral",
+  "postdoctoral fellow",
+  "postdoctoral researcher",
 
-"research associate",
-"research fellow",
-"research scientist",
+  // Research
+  "research associate",
+  "research fellow",
+  "research scientist",
+  "researcher",
+  "scientist",
+  "staff scientist",
+  "staff researcher",
+  "research position",
+  "research opportunity",
 
-"scientist",
-"researcher",
-"staff scientist",
-"staff researcher",
+  // Fellowships
+  "fellowship",
+  "studentship",
+  "research fellowship",
+  "doctoral fellowship",
+  "postdoctoral fellowship",
 
-"studentship",
-"fellowship"
+  // Academic jobs
+  "assistant professor",
+  "associate professor",
+  "professor",
+  "lecturer",
+  "faculty position",
+  "faculty opening",
+  "faculty vacancy",
+
+  // General opportunities
+  "vacancy",
+  "opening",
+  "position available",
+  "job opening",
+  "hiring",
+  "recruitment",
+
+  // Programs
+  "graduate program",
+  "graduate position",
+  "doctoral program",
+  "research program",
+
+  // Internships
+  "internship",
+  "research internship",
+  "summer internship",
+
+  // Scholarships
+  "scholarship",
+  "research scholarship",
+
+  // Common physics/astro wording
+  "astrophysics",
+  "astronomy",
+  "cosmology",
+  "particle physics",
+  "physics department",
+  "physics division"
 
 ];
-
 const EXCLUDE_KEYWORDS = [
 
 "live session",
