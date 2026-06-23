@@ -44,6 +44,11 @@ const INCLUDE_KEYWORDS = [
 "research fellow",
 "research scientist",
 
+"scientist",
+"researcher",
+"staff scientist",
+"staff researcher",
+
 "studentship",
 "fellowship"
 
@@ -106,14 +111,29 @@ try {
         (item.content || "")
       ).toLowerCase();
 
+    const rssId =
+      Buffer.from(
+        (item.title || "") +
+        (item.link || "")
+      )
+      .toString("base64")
+      .replace(/\//g, "_")
+      .replace(/\+/g, "-")
+      .replace(/=/g, "");
+
+    // IMPORTANT
+    currentFeedIds.add(rssId);
+
     const include =
       INCLUDE_KEYWORDS.some(
-        k => text.includes(k)
+        keyword =>
+          text.includes(keyword)
       );
 
     const exclude =
       EXCLUDE_KEYWORDS.some(
-        k => text.includes(k)
+        keyword =>
+          text.includes(keyword)
       );
 
     if (!include || exclude) {
@@ -127,7 +147,7 @@ try {
       continue;
     }
 
-    let type = "Other";
+    let type = "Research";
 
     if (
       text.includes("phd") ||
@@ -136,42 +156,34 @@ try {
 
       type = "PhD";
 
-    } else if (
+    }
+    else if (
       text.includes("postdoc") ||
       text.includes("postdoctoral")
     ) {
 
       type = "Postdoc";
 
-    } else if (
+    }
+    else if (
       text.includes("research fellow")
     ) {
 
       type = "Research Fellow";
 
-    } else if (
+    }
+    else if (
       text.includes("research associate")
     ) {
 
       type = "Research Associate";
     }
 
-    const rssId =
-      Buffer.from(
-        (item.title || "") +
-        (item.link || "")
-      )
-      .toString("base64")
-      .replace(/\//g, "_")
-      .replace(/\+/g, "-")
-      .replace(/=/g, "");
-
-    currentFeedIds.add(rssId);
-
     const docRef =
       db.collection(
         "opportunities"
-      ).doc(rssId);
+      )
+      .doc(rssId);
 
     const existing =
       await docRef.get();
@@ -273,6 +285,7 @@ for (const doc of snapshot.docs) {
 const data = doc.data();
 
 if (
+  data.rssId &&
   !currentFeedIds.has(
     data.rssId
   )
