@@ -31,8 +31,6 @@ let addedCount = 0;
 let skippedCount = 0;
 
 const keywords = [
-
-```
 "phd",
 "postdoc",
 "post-doctoral",
@@ -48,13 +46,12 @@ const keywords = [
 "scholarship",
 "faculty position",
 "assistant professor"
-```
 
 ];
 
 for (const item of feed.items) {
 
-```
+
 const searchText =
   (
     (item.title || "") +
@@ -150,7 +147,7 @@ console.log(
   "Added:",
   item.title
 );
-```
+
 
 }
 
