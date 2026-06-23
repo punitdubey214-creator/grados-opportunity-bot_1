@@ -18,7 +18,7 @@ const parser = new Parser();
 const RSS_URL =
 "https://physicsworld.com/feed/";
 
-async function run(){
+async function run() {
 
 const feed =
 await parser.parseURL(RSS_URL);
@@ -27,75 +27,156 @@ console.log(
 `Found ${feed.items.length} items`
 );
 
-for(const item of feed.items){
+let addedCount = 0;
+let skippedCount = 0;
+
+const keywords = [
+
+```
+"phd",
+"postdoc",
+"post-doctoral",
+"doctoral",
+"studentship",
+"fellowship",
+"research position",
+"research associate",
+"research fellow",
+"graduate program",
+"graduate position",
+"internship",
+"scholarship",
+"faculty position",
+"assistant professor"
+```
+
+];
+
+for (const item of feed.items) {
+
+```
+const searchText =
+  (
+    (item.title || "") +
+    " " +
+    (item.contentSnippet || "")
+  ).toLowerCase();
+
+const isOpportunity =
+  keywords.some(
+    keyword =>
+      searchText.includes(keyword)
+  );
+
+if (!isOpportunity) {
+
+  skippedCount++;
+
+  console.log(
+    "Skipping news:",
+    item.title
+  );
+
+  continue;
+}
 
 const rssId =
-Buffer.from(
-(item.title || "") +
-(item.link || "")
-)
-.toString("base64")
-.replace(/\//g, "_")
-.replace(/\+/g, "-")
-.replace(/=/g, "");
+  Buffer.from(
+    (item.title || "") +
+    (item.link || "")
+  )
+  .toString("base64")
+  .replace(/\//g, "_")
+  .replace(/\+/g, "-")
+  .replace(/=/g, "");
 
 const docRef =
-db.collection(
-"opportunities"
-).doc(rssId);
+  db.collection(
+    "opportunities"
+  ).doc(rssId);
 
 const existing =
-await docRef.get();
+  await docRef.get();
 
-if(existing.exists){
+if (existing.exists) {
 
-console.log(
-"Skipping:",
-item.title
-);
+  console.log(
+    "Already exists:",
+    item.title
+  );
 
-continue;
+  continue;
 }
 
 await docRef.set({
 
-title:
-item.title || "",
+  title:
+    item.title || "",
 
-domain:
-"Physics",
+  description:
+    item.contentSnippet || "",
 
-source:
-"Physics World",
+  domain:
+    "Physics",
 
-url:
-item.link || "",
+  source:
+    "Physics World",
 
-publishedDate:
-item.pubDate || "",
+  url:
+    item.link || "",
 
-rssId,
+  publishedDate:
+    item.pubDate || "",
 
-createdAt:
-new Date().toISOString(),
+  deadline:
+    "",
 
-lastSeen:
-new Date().toISOString()
+  status:
+    "active",
+
+  rssId,
+
+  createdAt:
+    new Date().toISOString(),
+
+  lastSeen:
+    new Date().toISOString()
 
 });
 
+addedCount++;
+
 console.log(
-"Added:",
-item.title
+  "Added:",
+  item.title
 );
+```
 
 }
 
+console.log(
+`Added ${addedCount} opportunities`
+);
+
+console.log(
+`Skipped ${skippedCount} non-opportunities`
+);
 }
 
 run()
-.then(()=>process.exit(0))
-.catch(err=>{
+.then(() => {
+
+console.log(
+"RSS sync completed"
+);
+
+process.exit(0);
+
+})
+.catch(err => {
+
 console.error(err);
+
 process.exit(1);
+
 });
