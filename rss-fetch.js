@@ -15,153 +15,165 @@ const db = admin.firestore();
 
 const parser = new Parser();
 
-const RSS_URL =
-"https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss";
+const FEEDS = [
+
+{
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=98",
+domain: "Astronomy & Astrophysics",
+source: "HigherEdJobs"
+},
+
+{
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=106",
+domain: "Physics",
+source: "HigherEdJobs"
+},
+
+{
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=104",
+domain: "Mathematics",
+source: "HigherEdJobs"
+},
+
+{
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=100",
+domain: "Biology",
+source: "HigherEdJobs"
+},
+
+{
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=101",
+domain: "Chemistry",
+source: "HigherEdJobs"
+}
+
+];
 
 async function run() {
 
+let totalAdded = 0;
+let totalSkipped = 0;
+
+for(const feedInfo of FEEDS){
+
+console.log(
+`Reading ${feedInfo.domain}`
+);
+
+try{
+
 const feed =
-await parser.parseURL(RSS_URL);
+await parser.parseURL(
+feedInfo.url
+);
 
 console.log(
 `Found ${feed.items.length} items`
 );
 
-let addedCount = 0;
-let skippedCount = 0;
-
-const keywords = [
-"phd",
-"postdoc",
-"post-doctoral",
-"doctoral",
-"studentship",
-"fellowship",
-"research position",
-"research associate",
-"research fellow",
-"graduate program",
-"graduate position",
-"internship",
-"scholarship",
-"faculty position",
-"assistant professor"
-
-];
-
-for (const item of feed.items) {
-
-
-const searchText =
-  (
-    (item.title || "") +
-    " " +
-    (item.contentSnippet || "")
-  ).toLowerCase();
-
-const isOpportunity =
-  keywords.some(
-    keyword =>
-      searchText.includes(keyword)
-  );
-
-if (!isOpportunity) {
-
-  skippedCount++;
-
-  console.log(
-    "Skipping news:",
-    item.title
-  );
-
-  continue;
-}
+for(const item of feed.items){
 
 const rssId =
-  Buffer.from(
-    (item.title || "") +
-    (item.link || "")
-  )
-  .toString("base64")
-  .replace(/\//g, "_")
-  .replace(/\+/g, "-")
-  .replace(/=/g, "");
+Buffer.from(
+(item.title || "") +
+(item.link || "")
+)
+.toString("base64")
+.replace(///g, "_")
+.replace(/+/g, "-")
+.replace(/=/g, "");
 
 const docRef =
-  db.collection(
-    "opportunities"
-  ).doc(rssId);
+db.collection(
+"opportunities"
+).doc(rssId);
 
 const existing =
-  await docRef.get();
+await docRef.get();
 
-if (existing.exists) {
+if(existing.exists){
 
-  console.log(
-    "Already exists:",
-    item.title
-  );
+totalSkipped++;
 
-  continue;
+console.log(
+"Already exists:",
+item.title
+);
+
+continue;
+
 }
 
 await docRef.set({
 
-  title:
-    item.title || "",
+title:
+item.title || "",
 
-  description:
-    item.contentSnippet || "",
+description:
+item.contentSnippet || "",
 
-  domain:
-    "Physics",
+domain:
+feedInfo.domain,
 
-  source:
-    "Physics Today",
+source:
+feedInfo.source,
 
-  url:
-    item.link || "",
+url:
+item.link || "",
 
-  publishedDate:
-    item.pubDate || "",
+publishedDate:
+item.pubDate || "",
 
-  deadline:
-    "",
+deadline:
+"",
 
-  status:
-    "active",
+status:
+"active",
 
-  rssId,
+rssId,
 
-  createdAt:
-    new Date().toISOString(),
+createdAt:
+new Date().toISOString(),
 
-  lastSeen:
-    new Date().toISOString()
+lastSeen:
+new Date().toISOString()
 
 });
 
-addedCount++;
+totalAdded++;
 
 console.log(
-  "Added:",
-  item.title
+"Added:",
+item.title
 );
 
+}
+
+}
+catch(err){
+
+console.error(
+`Error reading ${feedInfo.domain}`
+);
+
+console.error(err);
+
+}
 
 }
 
 console.log(
-`Added ${addedCount} opportunities`
+`Total Added: ${totalAdded}`
 );
 
 console.log(
-`Skipped ${skippedCount} non-opportunities`
+`Total Skipped: ${totalSkipped}`
 );
+
 }
 
 run()
-.then(() => {
+.then(()=>{
 
 console.log(
 "RSS sync completed"
@@ -170,7 +182,7 @@ console.log(
 process.exit(0);
 
 })
-.catch(err => {
+.catch(err=>{
 
 console.error(err);
 
