@@ -2,11 +2,11 @@ import Parser from "rss-parser";
 import admin from "firebase-admin";
 
 const serviceAccount = JSON.parse(
-  process.env.FIREBASE_SERVICE_ACCOUNT
+process.env.FIREBASE_SERVICE_ACCOUNT
 );
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
@@ -15,230 +15,303 @@ const parser = new Parser();
 
 const FEEDS = [
 
-  {
-    url: "https://jobs.physicstoday.org/jobsrss/",
-    domain: "Physics",
-    source: "Physics Today"
-  },
+{
+url: "https://jobs.physicstoday.org/jobsrss/",
+domain: "Physics",
+source: "Physics Today"
+},
 
-  {
-    url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbvWA0OqFik.rss",
-    domain: "Physics",
-    source: "Physics Jobs Feed"
-  }
+{
+url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbvWA0OqFik.rss",
+domain: "Physics",
+source: "Physics Jobs Feed"
+}
+
+];
+
+const INCLUDE_KEYWORDS = [
+
+"phd",
+"doctoral",
+"phd position",
+"doctoral position",
+"phd candidate",
+
+"postdoc",
+"postdoctoral",
+
+"research associate",
+"research fellow",
+"research scientist",
+
+"studentship",
+"fellowship"
+
+];
+
+const EXCLUDE_KEYWORDS = [
+
+"live session",
+"masterclass",
+"coaching",
+"batch",
+"youtube",
+"webinar",
+"follow",
+"share",
+"csir-net",
+"gate",
+"jee",
+"neet",
+"course",
+"admission open",
+"training"
 
 ];
 
 async function run() {
 
-  const currentFeedIds = new Set();
+const currentFeedIds = new Set();
 
-  let added = 0;
-  let updated = 0;
-  let deleted = 0;
+let added = 0;
+let updated = 0;
+let deleted = 0;
+let filtered = 0;
 
-  for (const feedInfo of FEEDS) {
+for (const feedInfo of FEEDS) {
 
-    try {
-
-      console.log(
-        `Reading ${feedInfo.source}`
-      );
-
-      const feed =
-        await parser.parseURL(
-          feedInfo.url
-        );
-
-      console.log(
-        `Found ${feed.items.length} items`
-      );
-
-      for (const item of feed.items) {
-
-        const text =
-          (
-            (item.title || "") +
-            " " +
-            (item.contentSnippet || "") +
-            " " +
-            (item.content || "")
-          ).toLowerCase();
-
-        let type = "Other";
-
-        if (
-          text.includes("phd") ||
-          text.includes("doctoral")
-        ) {
-          type = "PhD";
-        }
-        else if (
-          text.includes("postdoc") ||
-          text.includes("postdoctoral")
-        ) {
-          type = "Postdoc";
-        }
-        else if (
-          text.includes("faculty") ||
-          text.includes("professor")
-        ) {
-          type = "Faculty";
-        }
-
-        const rssId =
-          Buffer.from(
-            (item.title || "") +
-            (item.link || "")
-          )
-          .toString("base64")
-          .replace(/\//g, "_")
-          .replace(/\+/g, "-")
-          .replace(/=/g, "");
-
-        currentFeedIds.add(rssId);
-
-        const docRef =
-          db.collection(
-            "opportunities"
-          ).doc(rssId);
-
-        const existing =
-          await docRef.get();
-
-        const opportunity = {
-
-          title:
-            item.title || "",
-
-          description:
-            item.contentSnippet ||
-            item.content ||
-            "",
-
-          domain:
-            feedInfo.domain,
-
-          source:
-            feedInfo.source,
-
-          type,
-
-          institution: "",
-
-          location: "",
-
-          deadline: "",
-
-          url:
-            item.link || "",
-
-          publishedDate:
-            item.pubDate || "",
-
-          rssId,
-
-          status:
-            "active",
-
-          lastSeen:
-            new Date().toISOString()
-
-        };
-
-        if (existing.exists) {
-
-          await docRef.set(
-            opportunity,
-            { merge: true }
-          );
-
-          updated++;
-
-          console.log(
-            `Updated: ${item.title}`
-          );
-
-        } else {
-
-          await docRef.set({
-
-            ...opportunity,
-
-            createdAt:
-              new Date().toISOString()
-
-          });
-
-          added++;
-
-          console.log(
-            `Added: ${item.title}`
-          );
-        }
-      }
-
-    } catch (err) {
-
-      console.log(
-        `Error reading ${feedInfo.source}`
-      );
-
-      console.error(err);
-    }
-  }
+try {
 
   console.log(
-    "Checking for deleted opportunities..."
+    `Reading ${feedInfo.source}`
   );
 
-  const snapshot =
-    await db.collection(
-      "opportunities"
-    ).get();
+  const feed =
+    await parser.parseURL(
+      feedInfo.url
+    );
 
-  for (const doc of snapshot.docs) {
+  console.log(
+    `Found ${feed.items.length} items`
+  );
 
-    const data = doc.data();
+  for (const item of feed.items) {
 
-    if (
-      !currentFeedIds.has(
-        data.rssId
-      )
-    ) {
+    const text =
+      (
+        (item.title || "") +
+        " " +
+        (item.contentSnippet || "") +
+        " " +
+        (item.content || "")
+      ).toLowerCase();
 
-      await doc.ref.delete();
+    const include =
+      INCLUDE_KEYWORDS.some(
+        k => text.includes(k)
+      );
 
-      deleted++;
+    const exclude =
+      EXCLUDE_KEYWORDS.some(
+        k => text.includes(k)
+      );
+
+    if (!include || exclude) {
+
+      filtered++;
 
       console.log(
-        `Deleted: ${data.title}`
+        `Filtered: ${item.title}`
+      );
+
+      continue;
+    }
+
+    let type = "Other";
+
+    if (
+      text.includes("phd") ||
+      text.includes("doctoral")
+    ) {
+
+      type = "PhD";
+
+    } else if (
+      text.includes("postdoc") ||
+      text.includes("postdoctoral")
+    ) {
+
+      type = "Postdoc";
+
+    } else if (
+      text.includes("research fellow")
+    ) {
+
+      type = "Research Fellow";
+
+    } else if (
+      text.includes("research associate")
+    ) {
+
+      type = "Research Associate";
+    }
+
+    const rssId =
+      Buffer.from(
+        (item.title || "") +
+        (item.link || "")
+      )
+      .toString("base64")
+      .replace(/\//g, "_")
+      .replace(/\+/g, "-")
+      .replace(/=/g, "");
+
+    currentFeedIds.add(rssId);
+
+    const docRef =
+      db.collection(
+        "opportunities"
+      ).doc(rssId);
+
+    const existing =
+      await docRef.get();
+
+    const opportunity = {
+
+      title:
+        item.title || "",
+
+      description:
+        item.contentSnippet ||
+        item.content ||
+        "",
+
+      domain:
+        feedInfo.domain,
+
+      source:
+        feedInfo.source,
+
+      type,
+
+      institution: "",
+
+      location: "",
+
+      deadline: "",
+
+      url:
+        item.link || "",
+
+      publishedDate:
+        item.pubDate || "",
+
+      rssId,
+
+      status:
+        "active",
+
+      lastSeen:
+        new Date().toISOString()
+
+    };
+
+    if (existing.exists) {
+
+      await docRef.set(
+        opportunity,
+        { merge: true }
+      );
+
+      updated++;
+
+      console.log(
+        `Updated: ${item.title}`
+      );
+
+    } else {
+
+      await docRef.set({
+
+        ...opportunity,
+
+        createdAt:
+          new Date().toISOString()
+
+      });
+
+      added++;
+
+      console.log(
+        `Added: ${item.title}`
       );
     }
   }
 
-  console.log("");
-  console.log("========== SUMMARY ==========");
-  console.log(`Added: ${added}`);
-  console.log(`Updated: ${updated}`);
-  console.log(`Deleted: ${deleted}`);
-  console.log("=============================");
+} catch (err) {
+
+  console.log(
+    `Error reading ${feedInfo.source}`
+  );
+
+  console.error(err);
+}
+
+}
+
+console.log(
+"Checking for deleted opportunities..."
+);
+
+const snapshot =
+await db.collection(
+"opportunities"
+).get();
+
+for (const doc of snapshot.docs) {
+
+const data = doc.data();
+
+if (
+  !currentFeedIds.has(
+    data.rssId
+  )
+) {
+
+  await doc.ref.delete();
+
+  deleted++;
+
+  console.log(
+    `Deleted: ${data.title}`
+  );
+}
+
+}
+
+console.log("");
+console.log("========== SUMMARY ==========");
+console.log("Added: ${added}");
+console.log("Updated: ${updated}");
+console.log("Deleted: ${deleted}");
+console.log("Filtered: ${filtered}");
+console.log("=============================");
 }
 
 run()
 .then(() => {
 
-  console.log(
-    "RSS sync completed"
-  );
+console.log(
+"RSS sync completed"
+);
 
-  process.exit(0);
+process.exit(0);
 
 })
 .catch((err) => {
 
-  console.error(err);
+console.error(err);
 
-  process.exit(1);
+process.exit(1);
 
 });
