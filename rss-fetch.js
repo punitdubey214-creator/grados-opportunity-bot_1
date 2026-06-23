@@ -16,7 +16,7 @@ const db = admin.firestore();
 const parser = new Parser();
 
 const RSS_URL =
-"https://physicsworld.com/feed/";
+"https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss";
 
 async function run() {
 
