@@ -2,11 +2,11 @@ import Parser from "rss-parser";
 import admin from "firebase-admin";
 
 const serviceAccount = JSON.parse(
-process.env.FIREBASE_SERVICE_ACCOUNT
+  process.env.FIREBASE_SERVICE_ACCOUNT
 );
 
 admin.initializeApp({
-credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
@@ -14,175 +14,231 @@ const db = admin.firestore();
 const parser = new Parser();
 
 const FEEDS = [
-{
-url: "https://jobs.physicstoday.org/jobsrss/",
-domain: "Physics",
-source: "Physics Today"
-}
+
+  {
+    url: "https://jobs.physicstoday.org/jobsrss/",
+    domain: "Physics",
+    source: "Physics Today"
+  },
+
+  {
+    url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbvWA0OqFik.rss",
+    domain: "Physics",
+    source: "Physics Jobs Feed"
+  }
+
 ];
 
 async function run() {
 
-const currentFeedIds = new Set();
+  const currentFeedIds = new Set();
 
-let added = 0;
-let updated = 0;
-let deleted = 0;
+  let added = 0;
+  let updated = 0;
+  let deleted = 0;
 
-for (const feedInfo of FEEDS) {
+  for (const feedInfo of FEEDS) {
 
+    try {
 
-console.log(`Reading ${feedInfo.source}`);
+      console.log(
+        `Reading ${feedInfo.source}`
+      );
 
-const feed = await parser.parseURL(
-  feedInfo.url
-);
+      const feed =
+        await parser.parseURL(
+          feedInfo.url
+        );
 
-console.log(
-  `Found ${feed.items.length} items`
-);
+      console.log(
+        `Found ${feed.items.length} items`
+      );
 
-for (const item of feed.items) {
+      for (const item of feed.items) {
 
-  const rssId = Buffer.from(
-    (item.title || "") +
-    (item.link || "")
-  )
-  .toString("base64")
-  .replace(/\//g, "_")
-  .replace(/\+/g, "-")
-  .replace(/=/g, "");
+        const text =
+          (
+            (item.title || "") +
+            " " +
+            (item.contentSnippet || "") +
+            " " +
+            (item.content || "")
+          ).toLowerCase();
 
-  currentFeedIds.add(rssId);
+        let type = "Other";
 
-  const docRef = db
-    .collection("opportunities")
-    .doc(rssId);
+        if (
+          text.includes("phd") ||
+          text.includes("doctoral")
+        ) {
+          type = "PhD";
+        }
+        else if (
+          text.includes("postdoc") ||
+          text.includes("postdoctoral")
+        ) {
+          type = "Postdoc";
+        }
+        else if (
+          text.includes("faculty") ||
+          text.includes("professor")
+        ) {
+          type = "Faculty";
+        }
 
-  const existing =
-    await docRef.get();
+        const rssId =
+          Buffer.from(
+            (item.title || "") +
+            (item.link || "")
+          )
+          .toString("base64")
+          .replace(/\//g, "_")
+          .replace(/\+/g, "-")
+          .replace(/=/g, "");
 
-  const data = {
+        currentFeedIds.add(rssId);
 
-    title:
-      item.title || "",
+        const docRef =
+          db.collection(
+            "opportunities"
+          ).doc(rssId);
 
-    description:
-      item.contentSnippet ||
-      item.content ||
-      "",
+        const existing =
+          await docRef.get();
 
-    domain:
-      feedInfo.domain,
+        const opportunity = {
 
-    source:
-      feedInfo.source,
+          title:
+            item.title || "",
 
-    url:
-      item.link || "",
+          description:
+            item.contentSnippet ||
+            item.content ||
+            "",
 
-    publishedDate:
-      item.pubDate || "",
+          domain:
+            feedInfo.domain,
 
-    deadline:
-      "",
+          source:
+            feedInfo.source,
 
-    status:
-      "active",
+          type,
 
-    rssId,
+          institution: "",
 
-    lastSeen:
-      new Date().toISOString()
+          location: "",
 
-  };
+          deadline: "",
 
-  if (existing.exists) {
+          url:
+            item.link || "",
 
-    await docRef.update(data);
+          publishedDate:
+            item.pubDate || "",
 
-    updated++;
+          rssId,
 
-    console.log(
-      `Updated: ${item.title}`
-    );
+          status:
+            "active",
 
-  } else {
+          lastSeen:
+            new Date().toISOString()
 
-    await docRef.set({
+        };
 
-      ...data,
+        if (existing.exists) {
 
-      createdAt:
-        new Date().toISOString()
+          await docRef.set(
+            opportunity,
+            { merge: true }
+          );
 
-    });
+          updated++;
 
-    added++;
+          console.log(
+            `Updated: ${item.title}`
+          );
 
-    console.log(
-      `Added: ${item.title}`
-    );
+        } else {
+
+          await docRef.set({
+
+            ...opportunity,
+
+            createdAt:
+              new Date().toISOString()
+
+          });
+
+          added++;
+
+          console.log(
+            `Added: ${item.title}`
+          );
+        }
+      }
+
+    } catch (err) {
+
+      console.log(
+        `Error reading ${feedInfo.source}`
+      );
+
+      console.error(err);
+    }
   }
-}
-
-
-}
-
-console.log(
-"Checking for removed opportunities..."
-);
-
-const snapshot =
-await db.collection(
-"opportunities"
-).get();
-
-for (const doc of snapshot.docs) {
-
-
-const data = doc.data();
-
-if (
-  !currentFeedIds.has(
-    data.rssId
-  )
-) {
-
-  await doc.ref.delete();
-
-  deleted++;
 
   console.log(
-    `Deleted: ${data.title}`
+    "Checking for deleted opportunities..."
   );
-}
 
+  const snapshot =
+    await db.collection(
+      "opportunities"
+    ).get();
 
-}
+  for (const doc of snapshot.docs) {
 
-console.log("");
-console.log("==========");
-console.log(`Added: ${added}`);
-console.log(`Updated: ${updated}`);
-console.log(`Deleted: ${deleted}`);
-console.log("==========");
+    const data = doc.data();
+
+    if (
+      !currentFeedIds.has(
+        data.rssId
+      )
+    ) {
+
+      await doc.ref.delete();
+
+      deleted++;
+
+      console.log(
+        `Deleted: ${data.title}`
+      );
+    }
+  }
+
+  console.log("");
+  console.log("========== SUMMARY ==========");
+  console.log(`Added: ${added}`);
+  console.log(`Updated: ${updated}`);
+  console.log(`Deleted: ${deleted}`);
+  console.log("=============================");
 }
 
 run()
 .then(() => {
 
-console.log(
-"RSS sync completed"
-);
+  console.log(
+    "RSS sync completed"
+  );
 
-process.exit(0);
+  process.exit(0);
 
 })
 .catch((err) => {
 
-console.error(err);
+  console.error(err);
 
-process.exit(1);
+  process.exit(1);
 
 });
