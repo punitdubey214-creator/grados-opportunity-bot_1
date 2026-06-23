@@ -117,7 +117,7 @@ await docRef.set({
     "Physics",
 
   source:
-    "Physics World",
+    "Physics Today",
 
   url:
     item.link || "",
