@@ -47,103 +47,105 @@ source: "Physics Telegram"
 
 ];
 
-const INCLUDE_KEYWORDS = [
 
-  // PhD
-  "phd",
-  "ph.d",
-  "doctoral",
-  "doctorate",
-  "doctoral position",
-  "phd position",
-  "phd candidate",
-  "doctoral candidate",
-  "phd admission",
-  "phd program",
-  "graduate student",
+let type = "Research";
 
-  // Postdoc
-  "postdoc",
-  "post-doc",
-  "postdoctoral",
-  "post doctoral",
-  "postdoctoral fellow",
-  "postdoctoral researcher",
+/* =========================
+   PHD
+========================= */
 
-  // Research
-  "research associate",
-  "research fellow",
-  "research scientist",
-  "researcher",
-  "scientist",
-  "staff scientist",
-  "staff researcher",
-  "research position",
-  "research opportunity",
+if (
 
-  // Fellowships
-  "fellowship",
-  "studentship",
-  "research fellowship",
-  "doctoral fellowship",
-  "postdoctoral fellowship",
+text.includes("phd") ||
+text.includes("ph.d") ||
+text.includes("doctoral") ||
+text.includes("doctorate") ||
+text.includes("doctoral student") ||
+text.includes("doctoral researcher") ||
+text.includes("graduate student") ||
+text.includes("phd candidate") ||
+text.includes("phd position") ||
+text.includes("fully funded phd") ||
+text.includes("studentship")
 
-  // Academic jobs
-  "assistant professor",
-  "associate professor",
-  "professor",
-  "lecturer",
-  "faculty position",
-  "faculty opening",
-  "faculty vacancy",
+){
 
-  // General opportunities
-  "vacancy",
-  "opening",
-  "position available",
-  "job opening",
-  "hiring",
-  "recruitment",
+type = "PhD";
 
-  // Programs
-  "graduate program",
-  "graduate position",
-  "doctoral program",
-  "research program",
+}
 
-  // Internships
-  "internship",
-  "research internship",
-  "summer internship",
+/* =========================
+   POSTDOC
+========================= */
 
-  // Scholarships
-  "scholarship",
-  "research scholarship",
+else if (
 
-  // Common physics/astro wording
-  "astrophysics",
-  "astronomy",
-  "cosmology",
-  "particle physics",
-  "physics department",
-  "physics division",
-  //master
-  "master",
-  "masters",
-  "master's",
-  "msc",
-  "graduate research assistant",
-  "research assistant",
-  "doctoral researcher",
-  "doctoral student",
-  "graduate researcher",
-  "fully funded",
-  "funded phd",
-  "funded position",
-  "observatory",
-  "astrophysics group"
+text.includes("postdoc") ||
+text.includes("post-doc") ||
+text.includes("postdoctoral") ||
+text.includes("post doctoral") ||
+text.includes("postdoctoral fellow") ||
+text.includes("postdoctoral researcher")
 
-];
+){
+
+type = "Postdoc";
+
+}
+
+/* =========================
+   MSC
+========================= */
+
+else if (
+
+text.includes("msc") ||
+text.includes("master") ||
+text.includes("masters") ||
+text.includes("master's") ||
+text.includes("masters student")
+
+){
+
+type = "MSc";
+
+}
+
+/* =========================
+   FACULTY
+========================= */
+
+else if (
+
+text.includes("assistant professor") ||
+text.includes("associate professor") ||
+text.includes("professor") ||
+text.includes("lecturer") ||
+text.includes("faculty")
+
+){
+
+type = "Faculty";
+
+}
+
+/* =========================
+   RESEARCH
+========================= */
+
+else if (
+
+text.includes("research fellow") ||
+text.includes("research associate") ||
+text.includes("research scientist") ||
+text.includes("researcher") ||
+text.includes("scientist")
+
+){
+
+type = "Research";
+
+}
 const EXCLUDE_KEYWORDS = [
 "conference",
 "workshop",
