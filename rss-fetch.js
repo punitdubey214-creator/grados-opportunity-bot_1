@@ -47,7 +47,17 @@ source: "Physics Telegram"
 
 ];
 
+for (const item of feed.items) {
 
+const text =
+(
+(item.title || "") +
+" " +
+(item.contentSnippet || "") +
+" " +
+(item.content || "")
+).toLowerCase();
+   
 let type = "Research";
 
 /* =========================
