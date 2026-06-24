@@ -244,61 +244,49 @@ try {
       continue;
     }
 
-    let type = "Research";
+    let type = "Other";
     
     if (
     
-    text.includes("phd") ||
-    text.includes("ph.d") ||
-    text.includes("doctoral") ||
-    text.includes("doctorate") ||
-    text.includes("graduate student")
+      text.includes("phd") ||
+      text.includes("ph.d") ||
+      text.includes("doctoral") ||
+      text.includes("doctorate") ||
+      text.includes("doctoral student") ||
+      text.includes("doctoral researcher") ||
+      text.includes("graduate student") ||
+      text.includes("phd candidate") ||
+      text.includes("fully funded phd")
     
     ){
     
-    type = "PhD";
+      type = "PhD";
     
     }
     else if (
     
-    text.includes("postdoc") ||
-    text.includes("post-doc") ||
-    text.includes("postdoctoral") ||
-    text.includes("post doctoral")
+      text.includes("postdoc") ||
+      text.includes("post-doc") ||
+      text.includes("postdoctoral") ||
+      text.includes("post doctoral") ||
+      text.includes("postdoctoral fellow") ||
+      text.includes("postdoctoral researcher")
     
     ){
     
-    type = "Postdoc";
+      type = "Postdoc";
     
     }
     else if (
     
-    text.includes("msc") ||
-    text.includes("master") ||
-    text.includes("masters") ||
-    text.includes("master's")
+      text.includes("msc") ||
+      text.includes("master") ||
+      text.includes("masters") ||
+      text.includes("master's")
     
     ){
     
-    type = "MSc";
-    
-    }
-    else if (
-    
-    text.includes("research fellow")
-    
-    ){
-    
-    type = "Research Fellow";
-    
-    }
-    else if (
-    
-    text.includes("research associate")
-    
-    ){
-    
-    type = "Research Associate";
+      type = "MSc";
     
     }
     
