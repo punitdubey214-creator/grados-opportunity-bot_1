@@ -13,7 +13,7 @@ credential: admin.credential.cert(serviceAccount)
 const db = admin.firestore();
 
 const URL =
-"https://www.findaphd.com/phds/physics/?10M7W0";
+"https://www.findaphd.com/phds/cross-subject/?30M7WcoPSMJtzTof";
 
 async function run(){
 
