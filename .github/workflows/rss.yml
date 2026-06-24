@@ -33,5 +33,5 @@ jobs:
         run: node findaphd-fetch.js
       - name: Run Euraxess Fetcher
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node euraxess-fetch.js
