@@ -151,7 +151,7 @@ const EXCLUDE_KEYWORDS = [
 "award",
 "prize",
 "book",
-"journal"
+"journal",
 
 "live session",
 "masterclass",
