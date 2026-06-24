@@ -121,9 +121,37 @@ const INCLUDE_KEYWORDS = [
   "particle physics",
   "physics department",
   "physics division"
+  //master
+  "master",
+  "masters",
+  "master's",
+  "msc",
+  "graduate research assistant",
+  "research assistant",
+  "doctoral researcher",
+  "doctoral student",
+  "graduate researcher",
+  "fully funded",
+  "funded phd",
+  "funded position",
+  "observatory",
+  "astrophysics group"
 
 ];
 const EXCLUDE_KEYWORDS = [
+"conference",
+"workshop",
+"seminar",
+"symposium",
+"meeting",
+"event",
+"podcast",
+"newsletter",
+"announcement",
+"award",
+"prize",
+"book",
+"journal"
 
 "live session",
 "masterclass",
@@ -217,36 +245,63 @@ try {
     }
 
     let type = "Research";
-
+    
     if (
-      text.includes("phd") ||
-      text.includes("doctoral")
-    ) {
-
-      type = "PhD";
-
+    
+    text.includes("phd") ||
+    text.includes("ph.d") ||
+    text.includes("doctoral") ||
+    text.includes("doctorate") ||
+    text.includes("graduate student")
+    
+    ){
+    
+    type = "PhD";
+    
     }
     else if (
-      text.includes("postdoc") ||
-      text.includes("postdoctoral")
-    ) {
-
-      type = "Postdoc";
-
+    
+    text.includes("postdoc") ||
+    text.includes("post-doc") ||
+    text.includes("postdoctoral") ||
+    text.includes("post doctoral")
+    
+    ){
+    
+    type = "Postdoc";
+    
     }
     else if (
-      text.includes("research fellow")
-    ) {
-
-      type = "Research Fellow";
-
+    
+    text.includes("msc") ||
+    text.includes("master") ||
+    text.includes("masters") ||
+    text.includes("master's")
+    
+    ){
+    
+    type = "MSc";
+    
     }
     else if (
-      text.includes("research associate")
-    ) {
-
-      type = "Research Associate";
+    
+    text.includes("research fellow")
+    
+    ){
+    
+    type = "Research Fellow";
+    
     }
+    else if (
+    
+    text.includes("research associate")
+    
+    ){
+    
+    type = "Research Associate";
+    
+    }
+    
 
     const docRef =
       db.collection(
@@ -373,10 +428,10 @@ if (
 
 console.log("");
 console.log("========== SUMMARY ==========");
-console.log("Added: ${added}");
-console.log("Updated: ${updated}");
-console.log("Deleted: ${deleted}");
-console.log("Filtered: ${filtered}");
+console.log(`Added: ${added}`);
+console.log(`Updated: ${updated}`);
+console.log(`Deleted: ${deleted}`);
+console.log(`Filtered: ${filtered}`);
 console.log("=============================");
 }
 
