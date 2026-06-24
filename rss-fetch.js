@@ -120,7 +120,7 @@ const INCLUDE_KEYWORDS = [
   "cosmology",
   "particle physics",
   "physics department",
-  "physics division"
+  "physics division",
   //master
   "master",
   "masters",
