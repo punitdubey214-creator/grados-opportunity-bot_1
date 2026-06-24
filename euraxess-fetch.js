@@ -13,7 +13,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const URL =
-  "https://euraxess.ec.europa.eu/jobs/search";
+  "https://euraxess.ec.europa.eu/jobs/search?f%5B0%5D=job_research_field%3A35&f%5B1%5D=job_research_field%3A345&f%5B2%5D=job_research_field%3A361&f%5B3%5D=offer_type%3Ajob_offer&f%5B4%5D=positions%3Aphp_positions";
 
 async function run() {
 
