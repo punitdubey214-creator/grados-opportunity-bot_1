@@ -22,9 +22,21 @@ source: "Physics Today"
 },
 
 {
+url: "http://feeds.aps.org/rss/recent/physics.xml",
+domain: "Physics",
+source: "APS Physics"
+},
+
+{
+url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss",
+domain: "Physics",
+source: "Physics Jobs"
+},
+
+{
 url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbvWA0OqFik.rss",
 domain: "Physics",
-source: "Physics Jobs Feed"
+source: "Physics Telegram"
 }
 
 ];
