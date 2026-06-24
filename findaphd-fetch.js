@@ -13,7 +13,7 @@ credential: admin.credential.cert(serviceAccount)
 const db = admin.firestore();
 
 const URL =
-"https://www.findaphd.com/phds/cross-subject/?30M7WcoPSMJtzTof";
+"https://inspirehep.net/jobs?sort=mostrecent&size=25&page=1&status=open";
 
 async function run(){
 
