@@ -1,8 +1,10 @@
 {
-"name": "grados-opportunity-bot",
-"type": "module",
-"dependencies": {
-"firebase-admin": "^13.0.0",
-"rss-parser": "^3.13.0"
-}
+  "name": "grados-opportunity-bot",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "rss-parser": "^3.13.0",
+    "axios": "^1.11.0",
+    "cheerio": "^1.1.2"
+  }
 }
