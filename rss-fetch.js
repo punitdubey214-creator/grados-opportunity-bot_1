@@ -16,6 +16,12 @@ const parser = new Parser();
 const FEEDS = [
 
 {
+url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=98",
+domain: "Physics",
+source: "HigherEdJobs Astronomy"
+},
+
+{
 url: "https://jobs.physicstoday.org/jobsrss/",
 domain: "Physics",
 source: "Physics Today"
