@@ -10,31 +10,243 @@ credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
-
 const parser = new Parser();
 
 const FEEDS = [
 
 {
-url: "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=98",
-domain: "Physics",
-source: "HigherEdJobs Astronomy"
+url:"https://jobs.physicstoday.org/jobsrss/",
+domain:"Physics",
+source:"Physics Today"
 },
 
 {
-url: "https://jobs.physicstoday.org/jobsrss/",
-domain: "Physics",
-source: "Physics Today"
+url:"http://feeds.aps.org/rss/recent/physics.xml",
+domain:"Physics",
+source:"APS Physics"
 },
 
 {
-url: "http://feeds.aps.org/rss/recent/physics.xml",
-domain: "Physics",
-source: "APS Physics"
+url:"https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss",
+domain:"Physics",
+source:"Physics Jobs"
 },
 
 {
-url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss",
+url:"https://fetchrss.com/feed/1wbuZ944LEzN1wbvWA0OqFik.rss",
+domain:"Physics",
+source:"Physics Telegram"
+}
+
+];
+
+const INCLUDE_KEYWORDS = [
+
+"phd",
+"ph.d",
+"doctoral",
+"doctorate",
+"studentship",
+"phd position",
+"doctoral position",
+"graduate student",
+
+"postdoc",
+"post-doc",
+"postdoctoral",
+"postdoctoral fellow",
+
+"msc",
+"master",
+"masters",
+"master's",
+
+"research fellow",
+"research associate",
+"research scientist",
+
+"assistant professor",
+"associate professor",
+"professor",
+"lecturer",
+"faculty",
+
+"astrophysics",
+"astronomy",
+"cosmology",
+"particle physics"
+
+];
+
+const EXCLUDE_KEYWORDS = [
+
+"conference",
+"workshop",
+"seminar",
+"symposium",
+"meeting",
+"event",
+"podcast",
+"newsletter",
+"award",
+"prize",
+"book",
+"journal",
+
+"youtube",
+"webinar",
+"coaching",
+"gate",
+"jee",
+"neet",
+"training"
+
+];
+
+async function run() {
+
+const currentFeedIds = new Set();
+
+for(const feedInfo of FEEDS){
+
+try{
+
+const feed =
+await parser.parseURL(
+feedInfo.url
+);
+
+for(const item of feed.items){
+
+const text =
+(
+(item.title || "") +
+" " +
+(item.contentSnippet || "") +
+" " +
+(item.content || "")
+).toLowerCase();
+
+const rssId =
+Buffer.from(
+(item.title || "") +
+(item.link || "")
+)
+.toString("base64")
+.replace(/\//g,"_")
+.replace(/\+/g,"-")
+.replace(/=/g,"");
+
+currentFeedIds.add(rssId);
+
+const include =
+INCLUDE_KEYWORDS.some(
+k => text.includes(k)
+);
+
+const exclude =
+EXCLUDE_KEYWORDS.some(
+k => text.includes(k)
+);
+
+if(!include || exclude){
+continue;
+}
+
+let type = "Research";
+
+if(
+text.includes("postdoc") ||
+text.includes("postdoctoral")
+){
+type = "Postdoc";
+}
+else if(
+text.includes("phd") ||
+text.includes("doctoral position") ||
+text.includes("studentship") ||
+text.includes("phd position")
+){
+type = "PhD";
+}
+else if(
+text.includes("msc") ||
+text.includes("master")
+){
+type = "MSc";
+}
+else if(
+text.includes("assistant professor") ||
+text.includes("associate professor") ||
+text.includes("lecturer")
+){
+type = "Faculty";
+}
+
+await db
+.collection("opportunities")
+.doc(rssId)
+.set({
+
+title:
+item.title || "",
+
+description:
+item.contentSnippet ||
+item.content ||
+"",
+
+domain:
+feedInfo.domain,
+
+source:
+feedInfo.source,
+
+type,
+
+url:
+item.link || "",
+
+publishedDate:
+item.pubDate || "",
+
+rssId,
+
+status:"active",
+
+lastSeen:
+new Date().toISOString()
+
+},
+{merge:true}
+);
+
+}
+
+}
+catch(err){
+
+console.error(
+feedInfo.source,
+err
+);
+
+}
+
+}
+
+console.log(
+"RSS sync completed"
+);
+
+}
+
+run()
+.then(()=>process.exit(0))
+.catch(err=>{
+console.error(err);
+process.exit(1);
+});url: "https://fetchrss.com/feed/1wbuZ944LEzN1wbuYg5h84XK.rss",
 domain: "Physics",
 source: "Physics Jobs"
 },
