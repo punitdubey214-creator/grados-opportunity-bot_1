@@ -106,8 +106,55 @@ const EXCLUDE_KEYWORDS = [
 "training"
 
 ];
+const MAX_POST_AGE_DAYS = 30;
 
+function isOlderThanDays(pubDate, days = MAX_POST_AGE_DAYS) {
+
+  if (!pubDate) return false;
+
+  const published = new Date(pubDate);
+
+  if (isNaN(published.getTime())) return false;
+
+  const age =
+    (Date.now() - published.getTime()) /
+    (1000 * 60 * 60 * 24);
+
+  return age > days;
+}
+
+async function deleteExpiredPosts() {
+
+  console.log("Deleting expired opportunities...");
+
+  const snapshot =
+    await db.collection("opportunities").get();
+
+  if (snapshot.empty) return;
+
+  const batch = db.batch();
+
+  snapshot.forEach(doc => {
+
+    const data = doc.data();
+
+    if (
+      data.publishedDate &&
+      isOlderThanDays(data.publishedDate)
+    ) {
+      batch.delete(doc.ref);
+    }
+
+  });
+
+  await batch.commit();
+
+  console.log("Expired opportunities deleted.");
+
+}
 async function run() {
+
+await deleteExpiredPosts();
 
 const currentFeedIds = new Set();
 
@@ -142,6 +189,11 @@ Buffer.from(
 .replace(/=/g,"");
 
 currentFeedIds.add(rssId);
+
+// Skip posts older than 30 days
+if (isOlderThanDays(item.pubDate || item.isoDate)) {
+  continue;
+}
 
 const include =
 INCLUDE_KEYWORDS.some(
@@ -212,7 +264,7 @@ url:
 item.link || "",
 
 publishedDate:
-item.pubDate || "",
+item.pubDate || item.isoDate || "",
 
 rssId,
 
