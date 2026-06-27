@@ -50,6 +50,10 @@ const INCLUDE_KEYWORDS = [
 "phd position",
 "doctoral position",
 "graduate student",
+"PhD", 
+"Pre doctoral", 
+"Ph.D", 
+ 
 
 "postdoc",
 "post-doc",
